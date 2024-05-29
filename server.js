@@ -1,23 +1,29 @@
 const express = require('express');
 const authRoute = require('./router/auth-route');
+const profileRoute = require('./router/profile-route');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const mongoose = require('mongoose');
 const User = require('./model/login');
-const cookies = require('cookie-session');
-require('dotenv').config();
+const session = require('express-session');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const app = express();
 app.set('view engine', 'ejs');
 
 // Middleware
+app.use(session({
+  secret: "PLUTOENV",
+  resave: false,
+  saveUninitialized: false
+}));
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use('/auth', authRoute);
-app.use(cookies({
-  maxAge: 24*60*60*1000, // age of a cookie it was 1 day
-  keys:PROCESS.ENV.COOKIE_KEY,
-}))
+app.use('/profile', profileRoute);
+
 // MongoDB connection
 const db = process.env.DATABASE_LOGIN;
 
@@ -45,19 +51,17 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-// sending out id in cookie
-passport.serializeUser((user,done)=>{
-  done(null,user.id)
-})
-
-//getting id who's it belongs
-passport.deserializeUser(async (user,done)=>{
-  await User.findById(id).then((user) =>{
-    done(null,user.id);
-  });
-  
-})
 // Passport configuration
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  await User.findById(id, (err, user) => {
+    done(err, user);
+  });
+});
+
 passport.use(new GoogleStrategy({
   clientID: process.env.YOUR_GOOGLE_CLIENT_ID,
   clientSecret: process.env.YOUR_GOOGLE_CLIENT_SECRET,

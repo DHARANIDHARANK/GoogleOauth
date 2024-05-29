@@ -13,7 +13,7 @@ router.get('/logout',(req,res)=>{
     res.send('logging out');
 })
 router.get('/google/callback',passport.authenticate('google'),(req,res)=>{
-    res.send('you have reached the callback uri')
+    res.redirect('/profile/');
 })
 
 module.exports= router;
