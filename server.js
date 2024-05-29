@@ -14,7 +14,7 @@ app.set('view engine', 'ejs');
 
 // Middleware
 app.use(session({
-  secret: ***
+
   resave: false,
   saveUninitialized: false
 }));
